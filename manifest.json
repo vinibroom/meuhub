@@ -1,0 +1,19 @@
+{
+  "name": "MeuHub — Dashboard Pessoal",
+  "short_name": "MeuHub",
+  "description": "Seu aplicativo pessoal tudo-em-um: Tarefas, Pomodoro, Notas e Hidratação.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

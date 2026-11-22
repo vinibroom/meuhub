@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- MANDATORY: Declare support for both light and dark themes -->
+  <meta name="color-scheme" content="light dark">
+  <script>
+    try {
+      document.querySelector('meta[name="color-scheme"]').content = localStorage.getItem("color-scheme") ?? "light dark";
+    } catch (e) {}
+  </script>
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>MeuHub — Dashboard Pessoal</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top App Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <img src="./icon.svg" alt="MeuHub logo" class="brand-logo" width="38" height="38">
+        <div>
+          <h1 id="greetingText" class="app-title">Olá!</h1>
+          <p id="currentDateText" class="app-subtitle">Carregando data...</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="installBtn" class="btn-install" hidden aria-label="Instalar aplicativo no celular">
+          📲 Instalar App
+        </button>
+        <button id="themeToggleBtn" class="btn-icon" aria-label="Alternar tema claro ou escuro" title="Alternar tema">
+          <span id="themeIcon" aria-hidden="true">🌗</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Viewport -->
+    <main class="app-content">
+      <!-- TAB 1: VISÃO GERAL (HOME DASHBOARD) -->
+      <section id="view-home" class="tab-view active" aria-labelledby="nav-home">
+        <div class="summary-grid">
+          <button class="summary-card card-accent-indigo" data-goto="tasks" type="button">
+            <div class="summary-header">
+              <span class="summary-icon">✅</span>
+              <span class="summary-badge" id="homeTaskBadge">0 pendentes</span>
+            </div>
+            <div class="summary-value" id="homeTaskProgress">0/0</div>
+            <div class="summary-label">Tarefas concluídas</div>
+            <progress id="homeTaskBar" max="100" value="0" class="brand-progress"></progress>
+          </button>
+
+          <button class="summary-card card-accent-cyan" data-goto="water" type="button">
+            <div class="summary-header">
+              <span class="summary-icon">💧</span>
+              <span class="summary-badge" id="homeWaterBadge">Meta 2.5L</span>
+            </div>
+            <div class="summary-value" id="homeWaterValue">0 ml</div>
+            <div class="summary-label">Hidratação de hoje</div>
+            <progress id="homeWaterBar" max="100" value="0" class="brand-progress"></progress>
+          </button>
+
+          <button class="summary-card card-accent-amber" data-goto="pomodoro" type="button">
+            <div class="summary-header">
+              <span class="summary-icon">⏱️</span>
+              <span class="summary-badge" id="homePomoState">Pronto</span>
+            </div>
+            <div class="summary-value" id="homePomoSessions">0 ciclos</div>
+            <div class="summary-label">Foco Pomodoro hoje</div>
+          </button>
+
+          <button class="summary-card card-accent-emerald" data-goto="notes" type="button">
+            <div class="summary-header">
+              <span class="summary-icon">📝</span>
+              <span class="summary-badge">Salvas no celular</span>
+            </div>
+            <div class="summary-value" id="homeNotesCount">0 notas</div>
+            <div class="summary-label">Bloco de notas rápidas</div>
+          </button>
+        </div>
+
+        <!-- Quick Actions on Home -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h2>⚡ Ações Rápidas</h2>
+          </div>
+          <div class="quick-actions-row">
+            <button type="button" class="chip-btn" id="quickAddWaterBtn">💧 +250 ml Água</button>
+            <button type="button" class="chip-btn" id="quickStartPomoBtn">▶️ Iniciar Pomodoro</button>
+            <button type="button" class="chip-btn" id="quickNewNoteBtn">📝 Nova Nota</button>
+          </div>
+        </div>
+
+        <!-- Pending Tasks Preview on Home -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h2>📌 Próximas Tarefas</h2>
+            <button type="button" class="btn-text" data-goto="tasks">Ver todas →</button>
+          </div>
+          <form id="homeQuickTaskForm" class="inline-form">
+            <input type="text" id="homeQuickTaskInput" placeholder="Adicionar tarefa rápida..." required autocomplete="off">
+            <button type="submit" class="btn-primary">+</button>
+          </form>
+          <ul id="homeTaskList" class="task-list compact-list"></ul>
+        </div>
+
+        <!-- Install / QR Code Helper Card -->
+        <div class="panel-card install-guide-card">
+          <div class="panel-header">
+            <h2>📱 Como instalar no seu Android</h2>
+          </div>
+          <ol class="install-steps">
+            <li>Abra este endereço no <strong>Chrome do seu celular</strong> (conectado no mesmo Wi-Fi).</li>
+            <li>Toque no botão <strong>"📲 Instalar App"</strong> no topo ou no menu <strong>⋮ → Adicionar à tela inicial / Instalar aplicativo</strong>.</li>
+            <li>Pronto! O <strong>MeuHub</strong> ficará na sua gaveta de apps e funcionará 100% offline.</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- TAB 2: TAREFAS -->
+      <section id="view-tasks" class="tab-view" hidden aria-labelledby="nav-tasks">
+        <div class="panel-card">
+          <div class="panel-header">
+            <h2>✅ Minhas Tarefas</h2>
+            <button type="button" id="clearDoneTasksBtn" class="btn-text danger-text">Limpar concluídas</button>
+          </div>
+          <form id="taskForm" class="stack-form">
+            <div class="input-row">
+              <input type="text" id="taskInput" placeholder="O que você precisa fazer?" required autocomplete="off">
+              <select id="taskPriority" aria-label="Prioridade da tarefa">
+                <option value="normal">Normal</option>
+                <option value="alta">🔥 Alta</option>
+                <option value="baixa">🌱 Baixa</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-primary full-width">Adicionar Tarefa</button>
+          </form>
+
+          <div class="filter-pills" role="tablist" aria-label="Filtrar tarefas">
+            <button type="button" class="pill active" data-filter="all">Todas</button>
+            <button type="button" class="pill" data-filter="pending">Pendentes</button>
+            <button type="button" class="pill" data-filter="done">Concluídas</button>
+          </div>
+
+          <ul id="fullTaskList" class="task-list"></ul>
+        </div>
+      </section>
+
+      <!-- TAB 3: POMODORO TIMER -->
+      <section id="view-pomodoro" class="tab-view" hidden aria-labelledby="nav-pomodoro">
+        <div class="panel-card pomo-card">
+          <div class="pomo-modes" role="tablist" aria-label="Modo do timer">
+            <button type="button" class="pill active" data-pomo-mode="focus" data-minutes="25">🎯 Foco (25m)</button>
+            <button type="button" class="pill" data-pomo-mode="short" data-minutes="5">☕ Pausa (5m)</button>
+            <button type="button" class="pill" data-pomo-mode="long" data-minutes="15">🌴 Longa (15m)</button>
+          </div>
+
+          <div class="pomo-ring-container">
+            <svg class="pomo-ring" viewBox="0 0 220 220">
+              <circle class="pomo-ring-bg" cx="110" cy="110" r="96"></circle>
+              <circle id="pomoRingProgress" class="pomo-ring-fg" cx="110" cy="110" r="96"></circle>
+            </svg>
+            <div class="pomo-time-overlay">
+              <div id="pomoTimeDisplay" class="pomo-time">25:00</div>
+              <div id="pomoStatusText" class="pomo-status">Pronto para focar</div>
+            </div>
+          </div>
+
+          <div class="pomo-controls">
+            <button type="button" id="pomoStartPauseBtn" class="btn-primary btn-large">▶️ Iniciar</button>
+            <button type="button" id="pomoResetBtn" class="btn-secondary btn-large">🔄 Resetar</button>
+          </div>
+
+          <div class="pomo-stats-row">
+            <div class="stat-box">
+              <span class="stat-num" id="pomoCyclesCount">0</span>
+              <span class="stat-lbl">Ciclos hoje</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num" id="pomoMinutesCount">0 min</span>
+              <span class="stat-lbl">Tempo focado</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: ÁGUA / HIDRATAÇÃO -->
+      <section id="view-water" class="tab-view" hidden aria-labelledby="nav-water">
+        <div class="panel-card water-card">
+          <div class="panel-header">
+            <h2>💧 Hidratação Diária</h2>
+            <button type="button" id="resetWaterBtn" class="btn-text">Zerar hoje</button>
+          </div>
+
+          <div class="water-hero">
+            <div class="water-bottle-visual">
+              <div id="waterFillLevel" class="water-fill" style="height: 0%"></div>
+              <div class="water-overlay-text">
+                <span id="waterCurrentText" class="water-big-num">0 ml</span>
+                <span id="waterPercentText" class="water-sub-num">0% da meta</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="water-buttons-grid">
+            <button type="button" class="water-add-btn" data-water-add="200">
+              <span class="water-btn-icon">🥛</span>
+              <strong>+200 ml</strong>
+              <small>Copo</small>
+            </button>
+            <button type="button" class="water-add-btn" data-water-add="300">
+              <span class="water-btn-icon">☕</span>
+              <strong>+300 ml</strong>
+              <small>Caneca</small>
+            </button>
+            <button type="button" class="water-add-btn" data-water-add="500">
+              <span class="water-btn-icon">🧴</span>
+              <strong>+500 ml</strong>
+              <small>Garrafa</small>
+            </button>
+            <button type="button" class="water-add-btn water-minus-btn" data-water-add="-200">
+              <span class="water-btn-icon">↩️</span>
+              <strong>-200 ml</strong>
+              <small>Corrigir</small>
+            </button>
+          </div>
+
+          <div class="water-goal-setting">
+            <label for="waterGoalRange">
+              Meta diária: <strong id="waterGoalLabel">2500 ml</strong>
+            </label>
+            <input type="range" id="waterGoalRange" min="1000" max="5000" step="250" value="2500">
+          </div>
+
+          <div class="water-history-box">
+            <h3>Registros de hoje</h3>
+            <ul id="waterLogList" class="water-log-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: NOTAS RÁPIDAS -->
+      <section id="view-notes" class="tab-view" hidden aria-labelledby="nav-notes">
+        <div class="panel-card">
+          <div class="panel-header">
+            <h2>📝 Notas Rápidas</h2>
+          </div>
+
+          <form id="noteForm" class="stack-form">
+            <input type="text" id="noteTitleInput" placeholder="Título da nota..." required autocomplete="off">
+            <textarea id="noteBodyInput" rows="3" placeholder="Escreva sua ideia, lembrete ou lista..." required></textarea>
+            <div class="note-form-footer">
+              <div class="color-picker-row" role="radiogroup" aria-label="Cor da nota">
+                <label class="color-swatch">
+                  <input type="radio" name="noteColor" value="indigo" checked>
+                  <span>Roxo</span>
+                </label>
+                <label class="color-swatch">
+                  <input type="radio" name="noteColor" value="emerald">
+                  <span>Verde</span>
+                </label>
+                <label class="color-swatch">
+                  <input type="radio" name="noteColor" value="amber">
+                  <span>Âmbar</span>
+                </label>
+                <label class="color-swatch">
+                  <input type="radio" name="noteColor" value="rose">
+                  <span>Rosa</span>
+                </label>
+              </div>
+              <button type="submit" class="btn-primary">Salvar Nota</button>
+            </div>
+          </form>
+
+          <div class="search-box">
+            <input type="search" id="noteSearchInput" placeholder="🔍 Buscar nas suas notas...">
+          </div>
+
+          <div id="notesGrid" class="notes-grid"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation Bar (Mobile App Feel) -->
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button type="button" id="nav-home" class="nav-item active" data-tab="home">
+        <span class="nav-icon" aria-hidden="true">🏠</span>
+        <span class="nav-label">Início</span>
+      </button>
+      <button type="button" id="nav-tasks" class="nav-item" data-tab="tasks">
+        <span class="nav-icon" aria-hidden="true">✅</span>
+        <span class="nav-label">Tarefas</span>
+      </button>
+      <button type="button" id="nav-pomodoro" class="nav-item" data-tab="pomodoro">
+        <span class="nav-icon" aria-hidden="true">⏱️</span>
+        <span class="nav-label">Foco</span>
+      </button>
+      <button type="button" id="nav-water" class="nav-item" data-tab="water">
+        <span class="nav-icon" aria-hidden="true">💧</span>
+        <span class="nav-label">Água</span>
+      </button>
+      <button type="button" id="nav-notes" class="nav-item" data-tab="notes">
+        <span class="nav-icon" aria-hidden="true">📝</span>
+        <span class="nav-label">Notas</span>
+      </button>
+    </nav>
+  </div>
+
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
